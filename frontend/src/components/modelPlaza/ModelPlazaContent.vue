@@ -1,10 +1,25 @@
 <template>
-  <div class="space-y-5">
-    <!-- 页头(独立形态下展示标题;后台形态 AppHeader 已有页面标题) -->
-    <div v-if="!embedded">
-      <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">{{ t('modelPlaza.title') }}</h1>
-      <p class="mt-1.5 text-sm text-gray-500 dark:text-dark-400">{{ t('modelPlaza.description') }}</p>
-    </div>
+  <div
+    class="model-plaza-page min-w-0 space-y-6"
+    :class="
+      embedded
+        ? ''
+        : 'rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-dark-700 dark:bg-dark-900 sm:p-6 lg:p-8'
+    "
+  >
+    <header class="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-6 dark:border-dark-700">
+      <div>
+        <p class="mb-2 text-xs font-medium tracking-wide text-gray-500 dark:text-dark-400">{{ t('modelPlaza.title') }}</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-3xl">{{ t('modelPlaza.heroTitle') }}</h1>
+        <p class="mt-2 text-sm text-gray-500 dark:text-dark-400">{{ t('modelPlaza.description') }}</p>
+      </div>
+      <RouterLink
+        :to="isAuthenticated ? '/keys' : { path: '/login', query: { redirect: '/keys' } }"
+        class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:border-dark-600 dark:text-dark-200 dark:hover:bg-dark-800"
+      >
+        {{ t('modelPlaza.manageKeys') }}
+      </RouterLink>
+    </header>
 
     <!-- 全局价格说明(管理员配置,Markdown) -->
     <div
@@ -77,7 +92,7 @@ const props = defineProps<{
   response: ModelPlazaResponse | null
   loading: boolean
   error?: boolean
-  /** 后台内嵌形态(AppLayout 内):隐藏页头。 */
+  /** 后台内嵌形态(AppLayout 内);保留调用接口。 */
   embedded?: boolean
 }>()
 
@@ -112,7 +127,8 @@ const groupOptions = computed(() =>
     id: g.id,
     name: g.name,
     platform: g.platform,
-    rate: effectiveRate(g)
+    rate: effectiveRate(g),
+    modelCount: g.models.length
   }))
 )
 

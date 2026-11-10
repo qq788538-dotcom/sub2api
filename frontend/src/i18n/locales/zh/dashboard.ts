@@ -656,6 +656,10 @@ export default {
 
   // Model Plaza (public group/model pricing showcase)
   modelPlaza: {
+    heroTitle: '找到适合你的模型',
+    manageKeys: '管理 API 密钥',
+    modelCount: '{count} 个模型',
+    clearSearch: '清除搜索',
     title: '模型广场',
     description: '按分组浏览可用模型与价格',
     loading: '加载中...',

@@ -180,6 +180,8 @@ export default {
     channels: 'Channels',
     availableChannels: 'Available Channels',
     modelPlaza: 'Model Plaza',
+    modelPrice: 'Model Pricing',
+    guide: 'User Guide',
     subscriptions: 'Subscriptions',
     accounts: 'Accounts',
     plugins: 'Plugins',

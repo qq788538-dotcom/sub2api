@@ -651,6 +651,10 @@ export default {
 
   // Model Plaza (public group/model pricing showcase)
   modelPlaza: {
+    heroTitle: 'Find the right model for you',
+    manageKeys: 'Manage API keys',
+    modelCount: '{count} models',
+    clearSearch: 'Clear search',
     title: 'Model Plaza',
     description: 'Browse available models and pricing by group',
     loading: 'Loading...',

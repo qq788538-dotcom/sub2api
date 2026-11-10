@@ -229,6 +229,16 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/guide',
+    name: 'Guide',
+    component: () => import('@/views/user/GuideView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'User Guide',
+      titleKey: 'nav.guide'
+    }
+  },
+  {
     path: '/usage',
     name: 'Usage',
     component: () => import('@/views/user/UsageView.vue'),
@@ -753,7 +763,8 @@ const routes: RouteRecordRaw[] = [
  * Create router instance
  */
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // Static assets use a release prefix; application URLs remain at the site root.
+  history: createWebHistory('/'),
   routes,
   scrollBehavior(_to, _from, savedPosition) {
     // Scroll to saved position when using browser back/forward
