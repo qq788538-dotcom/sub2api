@@ -68,6 +68,10 @@ export function resolveRouteDocumentTitle(
   customMenuItems: CustomMenuItem[] = [],
   options: RouteTitleOptions = {},
 ): string {
+  // 公开页的 SEO 标题（见 qqdaoSeo.ts）原样使用，与预渲染 HTML 保持一致
+  if (typeof route.meta.documentTitle === 'string' && route.meta.documentTitle) {
+    return route.meta.documentTitle
+  }
   const id = typeof route.params.id === 'string' ? route.params.id : ''
   const menuItem = route.name === 'CustomPage' && id
     ? customMenuItems.find((item) => item.id === id)

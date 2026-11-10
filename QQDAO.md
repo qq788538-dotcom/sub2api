@@ -10,6 +10,7 @@
 | style | `frontend/src/qqdao-theme.css` 主题样式 |
 | feat | 模型价格页改版、侧栏导航、公开的 `/guide` 使用教程（`views/user/GuideView.vue`） |
 | fix(ccswitch) | 导入 CC Switch 时选用分组实际提供的模型（`utils/ccswitchImport.ts`、`views/user/KeysView.vue`） |
+| feat(seo) | 公开页预渲染与 SEO 元信息（`scripts/qqdao-seo.ts`、`src/qqdaoSeo.ts`、路由 `meta.documentTitle`） |
 
 ## 线上架构
 
@@ -30,12 +31,17 @@ pnpm install
 npx vue-tsc --noEmit
 npx vitest run src/utils/__tests__/ccswitchImport src/views/user/__tests__
 npx vite build --base=/qqdao-ui/<发布号>/ --outDir /tmp/qqdao-ui-<发布号> --emptyOutDir
+node scripts/qqdao-seo.ts /tmp/qqdao-ui-<发布号>    # 必须执行：生成 seo/*.html、robots.txt、sitemap.xml、favicon.svg
 ```
+
+`qqdao-seo.ts` 会从线上公开接口读取首页内容（后台「首页内容」设置）、站点 Logo 和模型清单。
+这些数据变化后，需要重新构建一个发布号，预渲染内容才会更新。SEO 标题和描述统一在 `src/qqdaoSeo.ts` 中修改。
 
 发布：
 
 1. 把构建产物上传到服务器的新发布号目录，不要覆盖旧目录。
-2. 备份 Caddyfile，新增该发布号的 `handle_path`，并把 `@qqdaoPages` 的 root 指向新发布号；旧发布号的路由保留。
+2. 备份 Caddyfile，新增该发布号的 `handle_path`，并把 `@qqdaoSeoFiles` 和 `@qqdaoPages` 两处的 root 都指向新发布号；旧发布号的路由保留。
+   `@qqdaoPages` 内部按路径改写：`/`、`/home` 指向 `/seo/home.html`，`/guide`、`/model-plaza` 指向各自的 seo 文件，其余路径指向 `/index.html`（含 noindex）。
    写入时用 `cat 新文件 > Caddyfile`，保持 inode 不变，否则容器看不到改动。
 3. `caddy validate` 后执行 `caddy reload`。
 4. 后端：把 compose 的镜像标签改成新版本，然后 `docker compose up -d sub2api`。

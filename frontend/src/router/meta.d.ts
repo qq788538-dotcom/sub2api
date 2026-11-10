@@ -14,6 +14,11 @@ declare module 'vue-router' {
     requiresAuth?: boolean
 
     /**
+     * Full document title used verbatim (QQ岛 SEO pages); overrides title + site name
+     */
+    documentTitle?: string
+
+    /**
      * Whether this route requires admin role
      * @default false
      */

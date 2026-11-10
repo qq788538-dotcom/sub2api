@@ -3,6 +3,7 @@
  * Defines all application routes with lazy loading and navigation guards
  */
 
+import { QQDAO_SEO_PAGES } from '@/qqdaoSeo'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
@@ -36,7 +37,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/HomeView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Home'
+      title: 'Home',
+      documentTitle: QQDAO_SEO_PAGES.home.title
     }
   },
   {
@@ -181,6 +183,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/ModelPlazaView.vue'),
     meta: {
       requiresAuth: false,
+      documentTitle: QQDAO_SEO_PAGES.modelPlaza.title,
       title: 'Model Plaza',
       titleKey: 'modelPlaza.title'
     }
@@ -234,6 +237,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/GuideView.vue'),
     meta: {
       requiresAuth: false,
+      documentTitle: QQDAO_SEO_PAGES.guide.title,
       title: 'User Guide',
       titleKey: 'nav.guide'
     }
