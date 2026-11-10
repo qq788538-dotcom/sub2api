@@ -1236,6 +1236,7 @@ import {
   buildCcSwitchImportDeeplink,
   type CcSwitchClientType
 } from '@/utils/ccswitchImport'
+import { getModelPlaza } from '@/api/modelPlaza'
 
 // Helper to format date for datetime-local input
 const formatDateTimeLocal = (isoDate: string): string => {
@@ -1409,6 +1410,19 @@ const selectedKey = ref<ApiKey | null>(null)
 const copiedKeyId = ref<number | null>(null)
 const groupSelectorKeyId = ref<number | null>(null)
 const publicSettings = ref<PublicSettings | null>(null)
+// group_id -> models the group serves (from the public model plaza); lets the
+// CC Switch import pick a model the key's group actually has.
+const groupModelsById = ref(new Map<number, string[]>())
+async function loadGroupModels() {
+  try {
+    const plaza = await getModelPlaza()
+    groupModelsById.value = new Map(
+      (plaza.groups || []).map((group) => [group.id, (group.models || []).map((model) => model.name)])
+    )
+  } catch {
+    // Model plaza disabled or unreachable: imports keep the platform default model.
+  }
+}
 const dropdownRef = ref<HTMLElement | null>(null)
 const columnDropdownRef = ref<HTMLElement | null>(null)
 const dropdownPosition = ref<{ top?: number; bottom?: number; left: number } | null>(null)
@@ -2035,7 +2049,8 @@ const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
     clientType,
     providerName,
     apiKey: row.key,
-    usageScript
+    usageScript,
+    groupModels: row.group_id != null ? groupModelsById.value.get(row.group_id) : undefined
   })
 
   try {
@@ -2084,6 +2099,7 @@ onMounted(() => {
   loadGroups()
   loadUserGroupRates()
   loadPublicSettings()
+  loadGroupModels()
   document.addEventListener('click', closeGroupSelector)
   resetTimer = setInterval(() => { now.value = new Date() }, 60000)
 })

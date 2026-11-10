@@ -19,6 +19,21 @@ export interface CcSwitchImportDeeplinkInput {
   providerName: string
   apiKey: string
   usageScript: string
+  /** Models the key's group actually serves; used to replace a default the group lacks. */
+  groupModels?: readonly string[]
+}
+
+/**
+ * Keep the platform default when the group serves it; otherwise fall back to
+ * the group's first model so the imported provider works out of the box
+ * (e.g. an OpenAI-platform group of GLM/Kimi models has no gpt-* model).
+ */
+export function pickCcSwitchModel(
+  defaultModel: string | undefined,
+  groupModels: readonly string[] | undefined
+): string | undefined {
+  if (!defaultModel || !groupModels?.length) return defaultModel
+  return groupModels.includes(defaultModel) ? defaultModel : groupModels[0]
 }
 
 /**
@@ -94,7 +109,8 @@ export function resolveCcSwitchImportConfig(
 }
 
 export function buildCcSwitchImportDeeplink(input: CcSwitchImportDeeplinkInput): string {
-  const config = resolveCcSwitchImportConfig(input.platform, input.clientType, input.baseUrl)
+  const resolved = resolveCcSwitchImportConfig(input.platform, input.clientType, input.baseUrl)
+  const config = { ...resolved, model: pickCcSwitchModel(resolved.model, input.groupModels) }
   const entries: [string, string][] = [
     ['resource', 'provider'],
     ['app', config.app],
