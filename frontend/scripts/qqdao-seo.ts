@@ -49,7 +49,7 @@ async function getJson<T>(path: string, attempts = 3): Promise<T> {
 }
 
 interface PublicSettings { home_content?: string; site_logo?: string }
-interface PlazaGroup { name: string; platform: string; rate_multiplier: number; models?: { name: string }[] }
+interface PlazaGroup { name: string; description?: string; platform: string; rate_multiplier: number; models?: { name: string }[] }
 
 const [settings, plaza] = await Promise.all([
   getJson<PublicSettings>('/api/v1/settings/public'),
@@ -177,7 +177,7 @@ const plazaBody = [
   '<p>以下为构建时的模型清单快照，实时价格与可用状态以页面加载后的数据为准。</p>',
   ...groups.map(
     (g) =>
-      `<section><h2>${esc(g.name)}</h2><p>计费倍率 ${esc(String(g.rate_multiplier))}×，共 ${(g.models || []).length} 个模型</p><ul>${(g.models || [])
+      `<section><h2>${esc(g.name)}</h2>${g.description ? `<p>${esc(g.description)}</p>` : ''}<p>计费倍率 ${esc(String(g.rate_multiplier))}×，共 ${(g.models || []).length} 个模型</p><ul>${(g.models || [])
         .map((m) => `<li>${esc(m.name)}</li>`)
         .join('')}</ul></section>`
   ),
