@@ -59,8 +59,8 @@
       </nav>
 
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-dark-800/60">
-        <strong class="font-semibold text-gray-900 dark:text-white">单位：站内余额 $ / 100 万 tokens</strong>
-        <span class="text-gray-500 dark:text-dark-400">余额通过兑换码充值；实付价 = 目录价 × 分组倍率。</span>
+        <strong class="font-semibold text-gray-900 dark:text-white">¥1 = $1 站内余额</strong>
+        <span class="text-gray-500 dark:text-dark-400">人民币充值，按本站倍率计费：实付价 = 官方价 × 分组倍率。1M tokens = 100 万 tokens。</span>
       </div>
 
       <!-- 选择分组 -->
@@ -142,7 +142,7 @@
             />
           </label>
           <span class="text-xs text-gray-500 dark:text-dark-400">
-            {{ visibleModels.length }} 个模型 · {{ priceMode === 'paid' ? '本站实付' : '目录参考' }} / 100 万 tokens
+            {{ visibleModels.length }} 个模型 · {{ priceMode === 'paid' ? '人民币实付参考' : '官方参考 · US$' }} / 100 万 tokens
           </span>
         </div>
 
@@ -191,7 +191,7 @@
         <details class="plaza-details border-t border-gray-200 pt-4 dark:border-dark-700">
           <summary class="cursor-pointer text-sm text-gray-500 dark:text-dark-400">
             <span class="font-semibold text-gray-900 dark:text-white">完整计费明细</span>
-            <span class="ml-2">长上下文、缓存 1 小时、分时倍率与按次价格</span>
+            <span class="ml-2">长上下文、缓存 1 小时、分时倍率与按次价格（按站内余额 $ 显示，¥1 = $1）</span>
           </summary>
           <div class="mt-4">
             <PlazaGroupSection :group="{ ...activeGroup, models: visibleModels }" />
@@ -279,8 +279,8 @@ watch(
 type PriceMode = 'paid' | 'catalog'
 const priceMode = ref<PriceMode>('paid')
 const priceModes: { key: PriceMode; label: string }[] = [
-  { key: 'paid', label: '本站价格 · $' },
-  { key: 'catalog', label: '目录参考 · US$' }
+  { key: 'paid', label: '本站价格 · ¥' },
+  { key: 'catalog', label: '官方参考 · US$' }
 ]
 
 type PriceKey = 'input_price' | 'output_price' | 'cache_read_price' | 'cache_write_price'
@@ -300,7 +300,7 @@ function isTokenModel(m: PlazaModel): boolean {
   return (m.pricing?.billing_mode || BILLING_MODE_TOKEN) === BILLING_MODE_TOKEN
 }
 
-/** 组内按目录输出价从高到低，无价格的排后，非 token 计费的沉底。 */
+/** 组内按官方输出价从高到低，无价格的排后，非 token 计费的沉底。 */
 const visibleModels = computed<PlazaModel[]>(() => {
   const g = activeGroup.value
   if (!g) return []
@@ -324,12 +324,13 @@ const PER_MILLION = 1_000_000
 function paid(m: PlazaModel, key: PriceKey): string {
   const v = m.pricing?.[key]
   if (v == null || !activeGroup.value) return '—'
-  return formatScaled(v * effectiveRate(activeGroup.value), PER_MILLION, 2)
+  // ¥1 = $1 站内余额，本站价直接按人民币展示。
+  return formatScaled(v * effectiveRate(activeGroup.value), PER_MILLION, 2).replace(/^\$/, '¥')
 }
 
 function catalog(m: PlazaModel, key: PriceKey): string {
   const v = m.official_pricing?.[key]
-  return v == null ? '—' : formatScaled(v, PER_MILLION, 2)
+  return v == null ? '—' : formatScaled(v, PER_MILLION, 2).replace(/^\$/, 'US$ ')
 }
 
 function primaryPrice(m: PlazaModel, key: PriceKey): string {
@@ -337,7 +338,7 @@ function primaryPrice(m: PlazaModel, key: PriceKey): string {
 }
 
 function secondaryPrice(m: PlazaModel, key: PriceKey): string {
-  return priceMode.value === 'paid' ? `目录 ${catalog(m, key)}` : `本站 ${paid(m, key)}`
+  return priceMode.value === 'paid' ? `官方 ${catalog(m, key)}` : `本站 ${paid(m, key)}`
 }
 
 function modelHint(m: PlazaModel): string {

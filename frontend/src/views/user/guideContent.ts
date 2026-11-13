@@ -32,7 +32,7 @@ export const guideSections: GuideSection[] = [
     blocks: [
       { kind: 'steps', items: [
         '注册并登录 QQ岛。',
-        '本站暂未开通在线支付，余额通过兑换码充值：打开「兑换」页，输入兑换码，余额立即到账。',
+        '本站暂未开通在线支付，余额通过兑换码充值：打开「兑换」页，输入兑换码，余额立即到账。充值换算为 1 元人民币 = 1 美元站内余额。',
         '在仪表盘确认余额已增加；兑换失败时先核对兑换码是否已被使用，不要反复提交。'
       ] },
       { kind: 'links', items: [{ to: '/register', label: '注册账号' }, { to: '/redeem', label: '打开兑换页' }] }
