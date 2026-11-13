@@ -17,8 +17,8 @@
 - 后端：容器 `sub2api`，镜像标签写在服务器 `/data/sub2api/docker-compose.yml`，必须与实际运行的版本一致。
 - 前端：这个分支单独打包成静态文件，放在 `/data/sub2api/caddy_config/qqdao-ui/<发布号>/`。
   Caddy 通过 `@qqdaoPages` 把页面路由指向当前发布号，`/api`、`/v1` 等请求仍交给后端。
-- 后台的「一键升级」只会替换后端程序，不会更新这里的前端，也不会修改 compose 的镜像标签。
-  **不要直接点一键升级**，请按下面的流程升级。
+- 后台版本号下拉里的「一键升级」和「回滚」已在本分支关闭（`components/common/QqdaoUpgradeHint.vue`），
+  改为提示用脚本升级。它们只会替换后端程序，会让前后端版本和 compose 标签不一致。
 
 ## 升级到上游新版本
 
@@ -37,14 +37,18 @@ node scripts/qqdao-seo.ts /tmp/qqdao-ui-<发布号>    # 必须执行：生成 s
 `qqdao-seo.ts` 会从线上公开接口读取首页内容（后台「首页内容」设置）、站点 Logo 和模型清单。
 这些数据变化后，需要重新构建一个发布号，预渲染内容才会更新。SEO 标题和描述统一在 `src/qqdaoSeo.ts` 中修改。
 
-发布：
+发布（服务器脚本 `deploy/qqdao-upgrade.sh`，安装在 `/data/sub2api/qqdao-upgrade.sh`）：
 
-1. 把构建产物上传到服务器的新发布号目录，不要覆盖旧目录。
-2. 备份 Caddyfile，新增该发布号的 `handle_path`，并把 `@qqdaoSeoFiles` 和 `@qqdaoPages` 两处的 root 都指向新发布号；旧发布号的路由保留。
-   `@qqdaoPages` 内部按路径改写：`/`、`/home` 指向 `/seo/home.html`，`/guide`、`/model-plaza` 指向各自的 seo 文件，其余路径指向 `/index.html`（含 noindex）。
-   写入时用 `cat 新文件 > Caddyfile`，保持 inode 不变，否则容器看不到改动。
-3. `caddy validate` 后执行 `caddy reload`。
-4. 后端：把 compose 的镜像标签改成新版本，然后 `docker compose up -d sub2api`。
-5. 上游如果新增了前端页面路由，要同步加进 Caddyfile 的 `@qqdaoPages` 白名单。
-
-回滚：用备份的 Caddyfile 覆盖并 reload；后端改回原来的镜像标签后重建容器。
+1. 把构建产物上传到服务器 `/data/sub2api/caddy_config/qqdao-ui/<发布号>/`，不要覆盖旧目录。
+2. 先演练：`/data/sub2api/qqdao-upgrade.sh <后端版本> <发布号> --dry-run`，确认 Caddyfile 的改动符合预期。
+3. 正式执行：`/data/sub2api/qqdao-upgrade.sh <后端版本> <发布号>`。脚本依次完成：
+   - 拉取官方镜像；
+   - 保存 Caddyfile 和 compose 到 `qqdao-theme/upgrade/<时间>/`；
+   - 新增 `handle_path` 并把 `@qqdaoSeoFiles`、`@qqdaoPages` 指向新发布号；
+   - 修改 compose 标签并重建后端，等待 healthy 并核对运行版本；
+   - 检查 `/`、`/guide`、`/model-plaza`、`/keys` 和接口。
+   任何一步失败都会自动恢复原来的 Caddyfile 和 compose。
+4. 只改了前端时：`qqdao-upgrade.sh frontend <发布号>`，后端不会重启。
+5. 回滚：`qqdao-upgrade.sh rollback`，恢复到最近一次执行前的状态；查看现状：`qqdao-upgrade.sh status`。
+6. `--db-backup` 会在升级前 `pg_dump` 数据库。新版本可能升级数据库结构，回退后端前需要确认兼容。磁盘剩余空间小于数据库大小时，脚本会拒绝执行备份。
+7. 上游如果新增了前端页面路由，要同步加进 Caddyfile 的 `@qqdaoPages` 白名单。

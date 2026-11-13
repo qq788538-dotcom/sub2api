@@ -317,8 +317,11 @@
                   </div>
                 </div>
 
+                <!-- QQ岛：一键升级改为脚本升级提示 -->
+                <QqdaoUpgradeHint v-if="QQDAO_MANAGED_UPGRADE" :version="latestVersion" />
                 <!-- Update button -->
                 <button
+                  v-else
                   @click="handleUpdate"
                   :disabled="updating"
                   class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
@@ -375,7 +378,8 @@
                 </a>
 
                 <!-- Version rollback entry -->
-                <div class="border-t border-gray-100 pt-2 dark:border-dark-700">
+                <QqdaoUpgradeHint v-if="QQDAO_MANAGED_UPGRADE" mode="rollback" />
+                <div v-else class="border-t border-gray-100 pt-2 dark:border-dark-700">
                   <button
                     @click="toggleRollbackPanel"
                     class="group flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 dark:text-dark-500 dark:hover:bg-dark-700/50 dark:hover:text-dark-300"
@@ -650,6 +654,10 @@ import {
 } from '@/api/admin/system'
 import { useClipboard } from '@/composables/useClipboard'
 import Icon from '@/components/icons/Icon.vue'
+import QqdaoUpgradeHint from './QqdaoUpgradeHint.vue'
+
+/** QQ岛：前端单独发布，禁止后台直接替换后端程序（升级/回滚），改用 qqdao-upgrade.sh。 */
+const QQDAO_MANAGED_UPGRADE = true
 
 const GITHUB_REPO = 'Wei-Shaw/sub2api'
 // Docker Hub image published by CI (tags carry no "v" prefix, e.g. weishaw/sub2api:0.1.146)
@@ -752,6 +760,7 @@ async function refreshVersion(force = true) {
 }
 
 async function handleUpdate() {
+  if (QQDAO_MANAGED_UPGRADE) return
   if (updating.value) return
 
   updating.value = true
@@ -826,6 +835,7 @@ function formatPublishedAt(publishedAt: string): string {
 }
 
 async function handleRollback() {
+  if (QQDAO_MANAGED_UPGRADE) return
   if (!isAdmin.value) return
   if (rollingBack.value || !selectedRollbackVersion.value) return
 
